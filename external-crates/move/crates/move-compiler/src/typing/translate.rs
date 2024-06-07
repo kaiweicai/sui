@@ -3028,7 +3028,9 @@ fn resolve_index_funs_and_type(
             .add_diag(diag!(Declarations::MissingSyntaxMethod, (loc, msg()),));
         return (None, context.error_type(loc));
     };
-    let fty = core::make_function_type(context, loc, &m, &f, None);
+    // NOTE: We don't do a visibility check here because we _just_ care about computing the return
+    // type. The visibility check will happen later in `exp_to_borrow_`.
+    let fty = core::make_function_type_no_visibility_check(context, loc, &m, &f, None);
     let mut arg_types = args
         .iter()
         .map(|e| core::ready_tvars(&context.subst, e.ty.clone()))
@@ -4585,8 +4587,12 @@ fn unused_module_members(context: &mut Context, mident: &ModuleIdent_, mdef: &T:
     }
 
     for (loc, name, fun) in &mdef.functions {
-        if fun.attributes.contains_key_(&TestingAttribute::Test.into()) {
-            // functions with #[test] attribute are implicitly used
+        if fun.attributes.contains_key_(&TestingAttribute::Test.into())
+            || fun
+                .attributes
+                .contains_key_(&TestingAttribute::RandTest.into())
+        {
+            // functions with #[test] or R[random_test] attribute are implicitly used
             continue;
         }
         if is_sui_mode && *name == sui_mode::INIT_FUNCTION_NAME {
