@@ -22,7 +22,7 @@ pub const BLS12381: u8 = 0;
 pub const BN254: u8 = 1;
 
 // We need to set an upper bound on the number of public inputs to avoid a DoS attack
-pub const MAX_PUBLIC_INPUTS: usize = 8;
+pub const MAX_PUBLIC_INPUTS: usize = 1024;
 
 #[derive(Clone)]
 pub struct Groth16PrepareVerifyingKeyCostParams {
